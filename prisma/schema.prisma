@@ -1,0 +1,108 @@
+// The database is a READ MODEL of Stripe.
+// Billing state on Subscription and Invoice is written by webhook handlers only
+// (src/lib/webhooks). Request handlers may read it, never write it.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String    @id @default(cuid())
+  email     String    @unique
+  createdAt DateTime  @default(now())
+  customer  Customer?
+}
+
+// Identity mapping between our user and the Stripe customer. Not billing state.
+model Customer {
+  id               String         @id @default(cuid())
+  userId           String         @unique
+  stripeCustomerId String         @unique
+  createdAt        DateTime       @default(now())
+  user             User           @relation(fields: [userId], references: [id])
+  subscriptions    Subscription[]
+  invoices         Invoice[]
+  usageRecords     UsageRecord[]
+}
+
+model Subscription {
+  id                   String   @id @default(cuid())
+  customerId           String
+  stripeSubscriptionId String   @unique
+  // Stripe's status verbatim: trialing | active | past_due | canceled | unpaid | incomplete | incomplete_expired | paused
+  status               String
+  // Plan key derived from the base price's lookup_key (starter | pro | scale)
+  plan                 String
+  // Stripe price id of the licensed (flat fee) item
+  priceId              String
+  currentPeriodStart   DateTime
+  currentPeriodEnd     DateTime
+  cancelAtPeriodEnd    Boolean  @default(false)
+  // `created` of the newest Stripe event applied to this row. Older events are ignored,
+  // so out-of-order delivery cannot roll state backwards.
+  lastEventAt          DateTime
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+  customer             Customer @relation(fields: [customerId], references: [id])
+
+  @@index([customerId])
+}
+
+model Invoice {
+  id                   String    @id @default(cuid())
+  customerId           String
+  stripeInvoiceId      String    @unique
+  stripeSubscriptionId String?
+  amountDue            Int // minor units (cents)
+  amountPaid           Int
+  currency             String
+  // draft | open | paid | uncollectible | void
+  status               String
+  hostedInvoiceUrl     String?
+  periodStart          DateTime
+  periodEnd            DateTime
+  attemptCount         Int       @default(0)
+  lastPaymentError     String?
+  lastEventAt          DateTime
+  createdAt            DateTime  @default(now())
+  customer             Customer  @relation(fields: [customerId], references: [id])
+
+  @@index([customerId, createdAt])
+}
+
+model UsageRecord {
+  id         String    @id @default(cuid())
+  customerId String
+  metric     String
+  quantity   Int
+  recordedAt DateTime  @default(now())
+  // Set once Stripe has accepted the meter event. Null = not yet reported.
+  reportedAt DateTime?
+  customer   Customer  @relation(fields: [customerId], references: [id])
+
+  @@index([customerId, metric, recordedAt])
+}
+
+// The idempotency ledger. One row per Stripe event, inserted in the same transaction
+// as the state change it causes. A redelivered event violates the unique constraint
+// on stripeEventId and is skipped.
+model WebhookEvent {
+  id               String   @id @default(cuid())
+  stripeEventId    String   @unique
+  type             String
+  stripeCustomerId String?
+  // processed | ignored | stale
+  outcome          String
+  payload          Json
+  stripeCreatedAt  DateTime
+  processedAt      DateTime @default(now())
+
+  @@index([type])
+  @@index([stripeCustomerId])
+  @@index([processedAt])
+}
