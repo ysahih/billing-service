@@ -67,7 +67,8 @@ model Invoice {
   periodStart          DateTime
   periodEnd            DateTime
   attemptCount         Int       @default(0)
-  lastPaymentError     String?
+  // When Stripe Smart Retries will next try to collect. Null once paid or retries are exhausted.
+  nextPaymentAttempt   DateTime?
   lastEventAt          DateTime
   createdAt            DateTime  @default(now())
   customer             Customer  @relation(fields: [customerId], references: [id])
