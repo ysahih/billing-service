@@ -15,7 +15,8 @@
     "postinstall": "prisma generate",
     "db:migrate": "prisma migrate dev",
     "db:deploy": "prisma migrate deploy",
-    "stripe:setup": "tsx --env-file=.env scripts/stripe-setup.ts"
+    "stripe:setup": "tsx --env-file=.env scripts/stripe-setup.ts",
+    "usage:report": "tsx --conditions=react-server --env-file=.env scripts/report-usage.ts"
   },
   "dependencies": {
     "@prisma/client": "^6.19.3",
