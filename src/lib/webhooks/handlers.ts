@@ -45,7 +45,7 @@ export const handlers: Partial<Record<Stripe.Event.Type, Handler>> = {
     const outcome = await syncInvoice(tx, invoice, event.created);
     const subId = subscriptionIdOfInvoice(invoice);
     // Recovery: a past_due subscription whose invoice is now paid is back in good standing.
-    if (subId) await setSubscriptionStatus(tx, subId, "active", event.created, ["past_due"]);
+    if (subId && outcome === "processed") await setSubscriptionStatus(tx, subId, "active", event.created, ["past_due"]);
     return outcome;
   },
 
@@ -53,7 +53,8 @@ export const handlers: Partial<Record<Stripe.Event.Type, Handler>> = {
     const invoice = event.data.object as Stripe.Invoice;
     const outcome = await syncInvoice(tx, invoice, event.created);
     const subId = subscriptionIdOfInvoice(invoice);
-    if (subId) await setSubscriptionStatus(tx, subId, "past_due", event.created, ["active", "trialing"]);
+    // A failure older than the invoice's current state (e.g. it was since paid) changes nothing.
+    if (subId && outcome === "processed") await setSubscriptionStatus(tx, subId, "past_due", event.created, ["active", "trialing"]);
     return outcome;
   },
 
