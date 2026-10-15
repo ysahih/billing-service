@@ -3,9 +3,9 @@ import { CancelControls } from "@/components/CancelControls";
 import { PaymentFailedBanner } from "@/components/PaymentFailedBanner";
 import { PlanChanger } from "@/components/PlanChanger";
 import { UsageSimulator } from "@/components/UsageSimulator";
-import { currentSubscription, outstandingInvoice } from "@/lib/billing";
+import { currentSubscription, invoicesFor, outstandingInvoice, upcomingInvoice } from "@/lib/billing";
 import { accessFor } from "@/lib/entitlements";
-import { PLANS, PLAN_ORDER, isPlanKey } from "@/lib/plans";
+import { PLANS, PLAN_ORDER, formatMoney, isPlanKey } from "@/lib/plans";
 import { requireUser } from "@/lib/session";
 import { usageSince } from "@/lib/usage";
 
@@ -30,7 +30,11 @@ export default async function AccountPage() {
   const plan = isPlanKey(sub.plan) ? PLANS[sub.plan] : null;
   const access = accessFor(sub.status);
   const unpaid = access === "restricted" ? await outstandingInvoice(sub.stripeSubscriptionId) : null;
-  const used = await usageSince(sub.customerId, sub.currentPeriodStart);
+  const [used, invoices, upcoming] = await Promise.all([
+    usageSince(sub.customerId, sub.currentPeriodStart),
+    invoicesFor(sub.customerId),
+    sub.cancelAtPeriodEnd ? null : upcomingInvoice(sub.customer.stripeCustomerId, sub.stripeSubscriptionId),
+  ]);
   const included = plan?.includedCalls ?? 0;
 
   return (
@@ -48,7 +52,16 @@ export default async function AccountPage() {
           {plan?.name ?? sub.plan} · <span data-testid="subscription-status">{sub.status}</span>
         </p>
         <p className="text-sm text-neutral-500">
-          Current period ends {fmtDate(sub.currentPeriodEnd)}
+          {sub.cancelAtPeriodEnd ? (
+            <>Ends {fmtDate(sub.currentPeriodEnd)}, no further charges</>
+          ) : upcoming ? (
+            <>
+              Renews {fmtDate(new Date(upcoming.date * 1000))} for {formatMoney(upcoming.amount, upcoming.currency)}
+              {plan?.meteredLookupKey && " (usage so far included)"}
+            </>
+          ) : (
+            <>Renews {fmtDate(sub.currentPeriodEnd)}</>
+          )}
         </p>
         <div className="mt-4">
           <PlanChanger
@@ -79,6 +92,43 @@ export default async function AccountPage() {
           </p>
         )}
         <UsageSimulator />
+      </section>
+
+      <section className="rounded border border-neutral-200 bg-white p-5">
+        <div className="flex items-center justify-between">
+          <h2 className="font-medium">Invoices</h2>
+          <form action="/api/portal" method="POST">
+            <button className="rounded border border-neutral-300 px-3 py-1.5 text-sm">Update payment method</button>
+          </form>
+        </div>
+        {invoices.length === 0 ? (
+          <p className="mt-2 text-sm text-neutral-500">No invoices yet.</p>
+        ) : (
+          <table className="mt-3 w-full text-sm">
+            <thead className="text-left text-neutral-500">
+              <tr>
+                <th className="py-1 font-normal">Period</th>
+                <th className="py-1 font-normal">Amount</th>
+                <th className="py-1 font-normal">Status</th>
+                <th />
+              </tr>
+            </thead>
+            <tbody>
+              {invoices.map((inv) => (
+                <tr key={inv.id} className="border-t border-neutral-100">
+                  <td className="py-2">{fmtDate(inv.periodStart)} – {fmtDate(inv.periodEnd)}</td>
+                  <td className="py-2 tabular-nums">{formatMoney(inv.amountDue, inv.currency)}</td>
+                  <td className="py-2">{inv.status}</td>
+                  <td className="py-2 text-right">
+                    {inv.hostedInvoiceUrl && (
+                      <a href={inv.hostedInvoiceUrl} target="_blank" rel="noreferrer" className="underline">View</a>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
       </section>
     </div>
   );
