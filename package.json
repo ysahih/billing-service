@@ -14,13 +14,15 @@
     "test:e2e": "playwright test",
     "postinstall": "prisma generate",
     "db:migrate": "prisma migrate dev",
-    "db:deploy": "prisma migrate deploy"
+    "db:deploy": "prisma migrate deploy",
+    "stripe:setup": "tsx --env-file=.env scripts/stripe-setup.ts"
   },
   "dependencies": {
     "@prisma/client": "^6.19.3",
     "next": "^15.5.28",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
+    "server-only": "^0.0.1",
     "stripe": "^23.0.0",
     "zod": "^4.6.7"
   },
