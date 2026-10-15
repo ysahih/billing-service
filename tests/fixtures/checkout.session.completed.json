@@ -1,0 +1,21 @@
+{
+  "id": "evt_1QfixtureCHECKOUT",
+  "object": "event",
+  "api_version": "2026-09-30.endive",
+  "created": 1760000005,
+  "livemode": false,
+  "type": "checkout.session.completed",
+  "data": {
+    "object": {
+      "id": "cs_test_fixture",
+      "object": "checkout.session",
+      "client_reference_id": "user_fixture",
+      "customer": "cus_QfixtureCUS",
+      "mode": "subscription",
+      "payment_status": "paid",
+      "status": "complete",
+      "subscription": "sub_1QfixtureSUB",
+      "metadata": { "userId": "user_fixture", "plan": "pro" }
+    }
+  }
+}

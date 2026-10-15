@@ -1,0 +1,76 @@
+{
+  "id": "evt_1QfixtureUPDATED",
+  "object": "event",
+  "api_version": "2026-09-30.endive",
+  "created": 1760100000,
+  "livemode": false,
+  "type": "customer.subscription.updated",
+  "data": {
+    "object": {
+      "id": "sub_1QfixtureSUB",
+      "object": "subscription",
+      "cancel_at_period_end": true,
+      "created": 1760000000,
+      "currency": "usd",
+      "customer": "cus_QfixtureCUS",
+      "livemode": false,
+      "metadata": {
+        "userId": "user_fixture"
+      },
+      "status": "active",
+      "trial_end": null,
+      "items": {
+        "object": "list",
+        "has_more": false,
+        "data": [
+          {
+            "id": "si_QfixtureBASE",
+            "object": "subscription_item",
+            "current_period_start": 1760000000,
+            "current_period_end": 1762678400,
+            "quantity": 1,
+            "subscription": "sub_1QfixtureSUB",
+            "price": {
+              "id": "price_scale_monthly",
+              "object": "price",
+              "currency": "usd",
+              "lookup_key": "scale_monthly",
+              "recurring": {
+                "interval": "month",
+                "interval_count": 1,
+                "usage_type": "licensed",
+                "meter": null
+              },
+              "type": "recurring",
+              "unit_amount": 19900
+            }
+          },
+          {
+            "id": "si_QfixtureMETER",
+            "object": "subscription_item",
+            "current_period_start": 1760000000,
+            "current_period_end": 1762678400,
+            "subscription": "sub_1QfixtureSUB",
+            "price": {
+              "id": "price_scale_api_calls",
+              "object": "price",
+              "currency": "usd",
+              "lookup_key": "scale_api_calls",
+              "recurring": {
+                "interval": "month",
+                "interval_count": 1,
+                "usage_type": "metered",
+                "meter": "mtr_fixture"
+              },
+              "type": "recurring",
+              "unit_amount": null
+            }
+          }
+        ]
+      }
+    },
+    "previous_attributes": {
+      "cancel_at_period_end": false
+    }
+  }
+}

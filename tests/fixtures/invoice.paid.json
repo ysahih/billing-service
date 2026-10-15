@@ -1,0 +1,37 @@
+{
+  "id": "evt_1QfixturePAID",
+  "object": "event",
+  "api_version": "2026-09-30.endive",
+  "created": 1760090000,
+  "livemode": false,
+  "type": "invoice.paid",
+  "data": {
+    "object": {
+      "id": "in_1QfixtureINV",
+      "object": "invoice",
+      "customer": "cus_QfixtureCUS",
+      "currency": "usd",
+      "amount_due": 4900,
+      "amount_paid": 4900,
+      "amount_remaining": 0,
+      "attempt_count": 2,
+      "attempted": true,
+      "billing_reason": "subscription_cycle",
+      "hosted_invoice_url": "https://invoice.stripe.com/i/acct_test/test_fixture",
+      "livemode": false,
+      "next_payment_attempt": null,
+      "period_start": 1757400000,
+      "period_end": 1760000000,
+      "status": "paid",
+      "total": 4900,
+      "parent": {
+        "type": "subscription_details",
+        "quote_details": null,
+        "subscription_details": {
+          "metadata": {},
+          "subscription": "sub_1QfixtureSUB"
+        }
+      }
+    }
+  }
+}
