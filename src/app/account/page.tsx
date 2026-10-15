@@ -107,7 +107,7 @@ export default async function AccountPage() {
           <table className="mt-3 w-full text-sm">
             <thead className="text-left text-neutral-500">
               <tr>
-                <th className="py-1 font-normal">Period</th>
+                <th className="py-1 font-normal">Date</th>
                 <th className="py-1 font-normal">Amount</th>
                 <th className="py-1 font-normal">Status</th>
                 <th />
@@ -116,7 +116,8 @@ export default async function AccountPage() {
             <tbody>
               {invoices.map((inv) => (
                 <tr key={inv.id} className="border-t border-neutral-100">
-                  <td className="py-2">{fmtDate(inv.periodStart)} – {fmtDate(inv.periodEnd)}</td>
+                  {/* Stripe's invoice period_end is when the invoice was cut, not the service period. */}
+                  <td className="py-2">{fmtDate(inv.periodEnd)}</td>
                   <td className="py-2 tabular-nums">{formatMoney(inv.amountDue, inv.currency)}</td>
                   <td className="py-2">{inv.status}</td>
                   <td className="py-2 text-right">

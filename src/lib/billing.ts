@@ -24,7 +24,7 @@ export async function outstandingInvoice(stripeSubscriptionId: string) {
 }
 
 export async function invoicesFor(customerId: string, take = 24) {
-  return db.invoice.findMany({ where: { customerId }, orderBy: { periodStart: "desc" }, take });
+  return db.invoice.findMany({ where: { customerId }, orderBy: { periodEnd: "desc" }, take });
 }
 
 /**
