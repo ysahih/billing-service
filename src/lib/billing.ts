@@ -13,3 +13,11 @@ export async function currentSubscription(userId: string) {
     include: { customer: true },
   });
 }
+
+/** The most recent unpaid invoice for a subscription — what the past-due banner links to. */
+export async function outstandingInvoice(stripeSubscriptionId: string) {
+  return db.invoice.findFirst({
+    where: { stripeSubscriptionId, status: "open" },
+    orderBy: { createdAt: "desc" },
+  });
+}

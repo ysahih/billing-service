@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { CancelControls } from "@/components/CancelControls";
+import { PaymentFailedBanner } from "@/components/PaymentFailedBanner";
 import { PlanChanger } from "@/components/PlanChanger";
-import { currentSubscription } from "@/lib/billing";
+import { currentSubscription, outstandingInvoice } from "@/lib/billing";
+import { accessFor } from "@/lib/entitlements";
 import { PLANS, PLAN_ORDER, isPlanKey } from "@/lib/plans";
 import { requireUser } from "@/lib/session";
 
@@ -24,6 +26,8 @@ export default async function AccountPage() {
   }
 
   const plan = isPlanKey(sub.plan) ? PLANS[sub.plan] : null;
+  const access = accessFor(sub.status);
+  const unpaid = access === "restricted" ? await outstandingInvoice(sub.stripeSubscriptionId) : null;
 
   return (
     <div className="space-y-8">
@@ -31,6 +35,8 @@ export default async function AccountPage() {
         <h1 className="text-2xl font-semibold">Account</h1>
         <p className="text-sm text-neutral-500">{user.email}</p>
       </div>
+
+      {access === "restricted" && <PaymentFailedBanner invoice={unpaid} />}
 
       <section className="rounded border border-neutral-200 bg-white p-5">
         <h2 className="font-medium">Plan</h2>
