@@ -1,5 +1,15 @@
 # billing-service
 
+**Live demo:** https://billing-service-tau.vercel.app. Sign in with any email and pay with
+Stripe's test card `4242 4242 4242 4242`. Test mode, no real charges. `/admin` is open
+read-only, with personal data masked.
+
+| Account | Plan change: preview before confirm |
+|---|---|
+| ![Account page: Pro plan, active, renewal amount from Stripe, usage against quota, invoice history](docs/screenshots/account.png) | ![Proration preview for Pro to Scale: credit for unused Pro, charge for remaining Scale, net $150.00, next invoice $349.00](docs/screenshots/proration-preview.png) |
+
+![Admin webhook event log: every Stripe event with its outcome, customer and timestamps; an invoice.payment_failed payload expanded](docs/screenshots/admin-events.png)
+
 Subscription billing on Stripe: three plans (two with metered overage), webhook-driven state,
 proration previews, failed-payment handling and an admin view with a webhook event log.
 **This is a portfolio project, not client work.** It runs against Stripe test mode only.
