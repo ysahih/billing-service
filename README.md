@@ -77,6 +77,8 @@ authoritative, ordered snapshots, and Stripe emits one whenever status really ch
 
 Other webhook properties:
 
+- **API version pinned.** Events in any API version other than the SDK's are rejected with a
+  400 before processing, because payload shapes differ between versions.
 - **Raw body.** The App Router has no body parser to disable (the Pages Router's
   `config.api.bodyParser = false` doesn't apply). The route reads `request.text()` and passes those
   exact bytes to `stripe.webhooks.constructEvent`. It never calls `request.json()` first.
@@ -200,7 +202,9 @@ pnpm prisma migrate dev          # apply migrations
 pnpm stripe:setup                # create meter, products, prices, portal config (idempotent)
                                  # → copy the printed STRIPE_PORTAL_CONFIGURATION_ID into .env
 
-stripe listen --forward-to localhost:3000/api/webhooks/stripe
+stripe listen --latest \
+  --events checkout.session.completed,customer.subscription.created,customer.subscription.updated,customer.subscription.deleted,customer.subscription.trial_will_end,invoice.paid,invoice.payment_failed \
+  --forward-to localhost:3000/api/webhooks/stripe
                                  # → copy the printed whsec_… into STRIPE_WEBHOOK_SECRET
 pnpm dev                         # http://localhost:3000
 ```
@@ -209,6 +213,11 @@ Sign in with any email, pick a plan, and pay with `4242 4242 4242 4242` (any fut
 CVC). To try a failed payment, switch the customer's card in the Billing Portal to
 `4000 0000 0000 0341` (attaches, then declines), then advance the subscription with a
 [test clock](https://docs.stripe.com/billing/testing/test-clocks) or the Dashboard.
+
+`--latest` matters. Without it, events are rendered in your account's default API version,
+which can be years older than the one this code is pinned to (`2026-09-30.endive`), with a
+different payload shape. The webhook route rejects mismatched versions with a 400 rather than
+misreading them. For a deployed endpoint, set its API version when you create it.
 
 The app refuses to start with a live key: `STRIPE_SECRET_KEY` must start with `sk_test_`.
 
