@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Prisma } from "@prisma/client";
 import { EventTable } from "@/components/EventTable";
+import { adminView } from "@/lib/admin";
 import { db } from "@/lib/db";
 
 const PAGE_SIZE = 50;
@@ -8,6 +9,7 @@ const PAGE_SIZE = 50;
 type Filters = { type?: string; outcome?: string; customer?: string; q?: string; before?: string };
 
 export default async function AdminEventsPage({ searchParams }: { searchParams: Promise<Filters> }) {
+  const admin = await adminView();
   const f = await searchParams;
   const where: Prisma.WebhookEventWhereInput = {
     ...(f.type ? { type: f.type } : {}),
@@ -52,7 +54,7 @@ export default async function AdminEventsPage({ searchParams }: { searchParams: 
         <Link href="/admin/events" className="px-2 py-1 text-neutral-500">Reset</Link>
       </form>
 
-      <EventTable events={page} />
+      <EventTable events={page} formatPayload={admin.payload} />
 
       {nextQuery && (
         <Link href={`/admin/events?${nextQuery}`} className="mt-4 inline-block text-sm underline">Older events →</Link>

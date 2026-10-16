@@ -13,6 +13,11 @@ const schema = z.object({
   APP_URL: z.string().url(),
   SESSION_SECRET: z.string().min(32),
   ADMIN_EMAILS: z.string().default(""),
+  // Public demo: /admin is readable by every visitor, with personal data masked.
+  DEMO_ADMIN_OPEN: z
+    .enum(["true", "false", ""])
+    .default("")
+    .transform((v) => v === "true"),
 });
 
 export type Env = z.infer<typeof schema>;

@@ -1,10 +1,12 @@
 import Link from "next/link";
 import { StatusPill } from "@/components/StatusPill";
+import { adminView } from "@/lib/admin";
 import { db } from "@/lib/db";
 import { mrrContribution } from "@/lib/mrr";
 import { formatMoney } from "@/lib/plans";
 
 export default async function AdminCustomersPage() {
+  const admin = await adminView();
   const customers = await db.customer.findMany({
     include: {
       user: true,
@@ -41,7 +43,7 @@ export default async function AdminCustomersPage() {
           {rows.map(({ c, sub, mrr }) => (
             <tr key={c.id} className="border-b border-neutral-100">
               <td className="p-2">
-                <Link href={`/admin/customers/${c.id}`} className="underline">{c.user.email}</Link>
+                <Link href={`/admin/customers/${c.id}`} className="underline">{admin.email(c.user.email)}</Link>
               </td>
               <td className="p-2 font-mono text-xs">{c.stripeCustomerId}</td>
               <td className="p-2">{sub?.plan ?? "—"}</td>

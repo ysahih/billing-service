@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { EventTable } from "@/components/EventTable";
 import { StatusPill } from "@/components/StatusPill";
+import { adminView } from "@/lib/admin";
 import { db } from "@/lib/db";
 import { mrrContribution } from "@/lib/mrr";
 import { formatMoney } from "@/lib/plans";
@@ -10,6 +11,7 @@ import { usageSince } from "@/lib/usage";
 const fmt = (d: Date) => d.toISOString().replace("T", " ").slice(0, 16);
 
 export default async function AdminCustomerPage({ params }: { params: Promise<{ id: string }> }) {
+  const admin = await adminView();
   const { id } = await params;
   const customer = await db.customer.findUnique({
     where: { id },
@@ -32,7 +34,7 @@ export default async function AdminCustomerPage({ params }: { params: Promise<{ 
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-xl font-semibold">{customer.user.email}</h1>
+        <h1 className="text-xl font-semibold">{admin.email(customer.user.email)}</h1>
         <p className="font-mono text-xs text-neutral-500">{customer.stripeCustomerId}</p>
         <p className="mt-1 text-sm text-neutral-600">
           MRR {formatMoney(current ? mrrContribution(current) : 0)} · {used.toLocaleString()} API calls this period
@@ -108,7 +110,7 @@ export default async function AdminCustomerPage({ params }: { params: Promise<{ 
           <h2 className="font-medium">Webhook events</h2>
           <Link href={`/admin/events?customer=${customer.stripeCustomerId}`} className="text-sm underline">Open in event log</Link>
         </div>
-        <EventTable events={events} />
+        <EventTable events={events} formatPayload={admin.payload} />
       </section>
     </div>
   );

@@ -13,7 +13,13 @@ const fmt = (d: Date) => d.toISOString().replace("T", " ").slice(0, 19);
  * The event log. `Created` is when Stripe created the event, `Received` when we committed it;
  * a large gap between them is the first thing to look at when state seems wrong.
  */
-export function EventTable({ events }: { events: WebhookEvent[] }) {
+export function EventTable({
+  events,
+  formatPayload,
+}: {
+  events: WebhookEvent[];
+  formatPayload: (payload: unknown) => unknown;
+}) {
   if (events.length === 0) return <p className="mt-2 text-sm text-neutral-500">No events.</p>;
   return (
     <div className="mt-2 divide-y divide-neutral-100 bg-white text-sm">
@@ -36,7 +42,7 @@ export function EventTable({ events }: { events: WebhookEvent[] }) {
               <span className="font-mono">{e.stripeEventId}</span> · created {fmt(e.stripeCreatedAt)} · received {fmt(e.processedAt)}
             </p>
             <pre className="max-h-96 overflow-auto rounded bg-neutral-900 p-3 text-neutral-100">
-              {JSON.stringify(e.payload, null, 2)}
+              {JSON.stringify(formatPayload(e.payload), null, 2)}
             </pre>
           </div>
         </details>

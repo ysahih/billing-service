@@ -153,6 +153,13 @@ The account page shows usage this period against the plan's included calls.
 ## 6. Admin
 
 `/admin` is gated by the `ADMIN_EMAILS` allowlist. Everyone else gets a 404, not a 403.
+Every admin page checks this itself, not just the layout.
+
+**Public demo mode** (`DEMO_ADMIN_OPEN=true`) opens `/admin` read-only to every visitor and masks
+personal data: emails become `y•••@gmail.com`, and names, addresses, phones and tax IDs in
+webhook payloads are redacted ([`redact.ts`](src/lib/redact.ts)). It masks for everyone,
+allowlisted emails included. Demo sign-in is passwordless, so an allowlisted email proves
+nothing on a public deployment.
 
 - **Customers:** status and MRR contribution per customer, plus total MRR. `active` and
   `past_due` count toward MRR; trials don't, and neither does metered overage.
