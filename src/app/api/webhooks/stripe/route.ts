@@ -1,4 +1,4 @@
-import type Stripe from "stripe";
+import Stripe from "stripe";
 import { db } from "@/lib/db";
 import { env } from "@/lib/env";
 import { stripe } from "@/lib/stripe";
@@ -23,6 +23,15 @@ export async function POST(request: Request) {
   } catch {
     // Bad signature or malformed payload: tell the sender, but do not leak details.
     return new Response("Invalid signature", { status: 400 });
+  }
+
+  // Payload shapes differ between API versions (e.g. where period dates and an invoice's
+  // subscription live). Events are rendered in the endpoint's version, which defaults to the
+  // account's, possibly years old. Refuse loudly rather than misread them: the failures show up
+  // in the Dashboard, and the fix is to set the endpoint's version (or `stripe listen --latest`).
+  if (event.api_version && event.api_version !== Stripe.API_VERSION) {
+    console.error(`[webhook] ${event.id} is API version ${event.api_version}; expected ${Stripe.API_VERSION}`);
+    return new Response(`Unsupported API version ${event.api_version}`, { status: 400 });
   }
 
   try {
